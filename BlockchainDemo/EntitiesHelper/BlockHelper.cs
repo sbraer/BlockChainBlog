@@ -8,6 +8,12 @@ public static class BlockHelper
 {
     public static void SetMerkleRoot(this Block block)
     {
+        if (block.TransactionCounter == 0)
+        {
+            block.BlockHeader.HashMerkleRoot = null;
+            return;
+        }
+
         var coll = block.Transactions.Where(t => t.Txid is not null).Select(t => t.Txid!).ToList();
         while (coll.Count > 1)
         {
@@ -34,7 +40,7 @@ public static class BlockHelper
         using MemoryStream ms = new();
         ms.Write(BitConverter.GetBytes(0x00000001)); // version
         ms.Write(Helper.CheckIfIsNull(blockHeader.HashPrevBlock));
-        ms.Write(blockHeader.HashMerkleRoot);
+        ms.Write(Helper.CheckIfIsNull(blockHeader.HashMerkleRoot));
         ms.Write(BitConverter.GetBytes(blockHeader.Time));
         ms.Write(blockHeader.Bits.StringToBytes());
         ms.Write(BitConverter.GetBytes(blockHeader.Nonce));
